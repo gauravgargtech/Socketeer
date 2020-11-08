@@ -28,7 +28,13 @@ const server = app.listen(PORT, function () {
 var io = require("socket.io").listen(server);
 //io.set('origins', '*:*');
 //io.origins('*:*');
-io.set('origins', 'https://addvoice.com.au');
+//io.set('origins', 'https://addvoice.com.au');
+io.origins((origin, callback) => {
+  if (origin !== 'https://addvoice.com.au') {
+      return callback('origin not allowed', false);
+  }
+  callback(null, true);
+});
 
 io.sockets.on("connection", function (client) {
   writeConnections.write("Socket connected-" + client.id);
