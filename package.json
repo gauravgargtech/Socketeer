@@ -1,0 +1,29 @@
+{
+  "name": "socket",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.20.0",
+    "base-64": "^1.0.0",
+    "buffer": "^5.6.0",
+    "cryptr": "^6.0.2",
+    "express": "^4.17.1",
+    "form-data": "^3.0.0",
+    "http": "0.0.1-security",
+    "lodash": "^4.17.20",
+    "natural": "^2.1.5",
+    "redis-node": "^0.4.0",
+    "socket.io": "^2.3.0",
+    "utf8": "^3.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.4"
+  }
+}
