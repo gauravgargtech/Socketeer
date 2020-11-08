@@ -15,8 +15,7 @@ const PORT = 4000;
 app.use(express.static("public"));
 
 var connectedSockets = [];
-app.use(cors());
-app.options('*', cors());
+//app.use(cors());
 
 const writeConnections = fs.createWriteStream("soocketconnections.txt", {
   flags: "a",
@@ -27,6 +26,7 @@ const server = app.listen(PORT, function () {
   console.log(`http://localhost:${PORT}`);
 });
 var io = require("socket.io").listen(server);
+io.set('origins', '*:*');
 
 io.sockets.on("connection", function (client) {
   writeConnections.write("Socket connected-" + client.id);
