@@ -16,6 +16,7 @@ app.use(express.static("public"));
 
 var connectedSockets = [];
 app.use(cors());
+app.options('*', cors());
 
 const writeConnections = fs.createWriteStream("soocketconnections.txt", {
   flags: "a",
