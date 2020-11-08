@@ -27,7 +27,8 @@ const server = app.listen(PORT, function () {
 });
 var io = require("socket.io").listen(server);
 //io.set('origins', '*:*');
-io.origins('*:*');
+//io.origins('*:*');
+io.set('origins', 'https://addvoice.com.au');
 
 io.sockets.on("connection", function (client) {
   writeConnections.write("Socket connected-" + client.id);
