@@ -120,9 +120,9 @@ io.sockets.on("connection", function (client) {
               scores: scoring,
             });
           }
-          fs.unlinkSync(fileName);
           connectedSockets[client.id] = null;
         }
+        fs.unlinkSync(fileName);
       });
     });
 });
