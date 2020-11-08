@@ -8,12 +8,14 @@ const redisClient = require("./adapters/redis");
 var Buffer = require("buffer/").Buffer;
 const FormData = require("form-data");
 const _ = require("lodash");
+var cors = require('cors');
 
 const PORT = 4000;
 
 app.use(express.static("public"));
 
 var connectedSockets = [];
+app.use(cors());
 
 const writeConnections = fs.createWriteStream("soocketconnections.txt", {
   flags: "a",
