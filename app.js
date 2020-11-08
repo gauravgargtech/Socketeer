@@ -3,15 +3,11 @@ var app = express();
 var fs = require("fs");
 const axios = require("axios").default;
 var natural = require("natural");
-const commandss = require("./config/commands");
 const redisClient = require("./adapters/redis");
 
 var Buffer = require("buffer/").Buffer;
 const FormData = require("form-data");
 const _ = require("lodash");
-
-const common = require("./common/functions");
-const { match } = require("assert");
 
 const PORT = 4000;
 
@@ -52,11 +48,7 @@ io.sockets.on("connection", function (client) {
       }
 
       var f = Math.floor(Math.random() * 100);
-      console.log("---");
-      console.log(msg);
       const appID = msg.appId;
-
-      console.log(appID);
 
       var fileName = `./audios/hello_${f}.wav`;
 
@@ -71,22 +63,13 @@ io.sockets.on("connection", function (client) {
 
       var speech = JSON.parse(res.data.partial);
 
-      console.log("commands_" + msg.appId);
-      console.log(speech);
-
       redisClient.get("commands_" + msg.appId, (err, allCommands) => {
-        console.log("--commnds fetched");
-        console.log(err);
-        console.log(allCommands);
         var commandsObj = JSON.parse(allCommands);
 
         if (!connectedSockets.includes(client.id)) {
-          console.log('--for hotwords--');
-
           const hotword = redisClient.get("hotword_" + appID, (err, word) => {
             let score = natural.JaroWinklerDistance(word, speech.partial);
-            console.log("hotword score");
-            console.log(score);
+
             if (score * 100 > 70) {
               var validCommands = [];
               for (key in commandsObj) {
@@ -107,11 +90,10 @@ io.sockets.on("connection", function (client) {
             }
           });
         } else {
-          console.log('---for command match--');
           var scoring = [];
           var matchedCommand = "";
           var redirect = "";
-          console.log(commandsObj);
+
           for (key in commandsObj) {
             let score = natural.JaroWinklerDistance(
               commandsObj[key].command,
@@ -121,14 +103,13 @@ io.sockets.on("connection", function (client) {
               word: commandsObj[key].command,
               score: score,
             });
-            console.log("---score--");
-            console.log(score);
+
             if (score * 100 > 65 && redirect == "") {
               matchedCommand = commandsObj[key].command;
               redirect = commandsObj[key].action;
             }
           }
-          console.log(matchedCommand);
+
           if (!_.isEmpty(matchedCommand)) {
             client.emit("event", {
               commandType: "instruction",
@@ -141,7 +122,6 @@ io.sockets.on("connection", function (client) {
           }
           fs.unlinkSync(fileName);
           connectedSockets[client.id] = null;
-          console.log("stream ended");
         }
       });
     });
