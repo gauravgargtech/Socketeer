@@ -26,7 +26,8 @@ const server = app.listen(PORT, function () {
   console.log(`http://localhost:${PORT}`);
 });
 var io = require("socket.io").listen(server);
-io.set('origins', '*:*');
+//io.set('origins', '*:*');
+io.origins('*:*');
 
 io.sockets.on("connection", function (client) {
   writeConnections.write("Socket connected-" + client.id);
