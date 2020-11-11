@@ -109,6 +109,7 @@ io.sockets.on("connection", function (client) {
           var matchedCommand = "";
           var redirect = "";
 
+          var matchedScore = 0;
           for (key in commandsObj) {
             let score = natural.JaroWinklerDistance(
               commandsObj[key].command,
@@ -122,6 +123,7 @@ io.sockets.on("connection", function (client) {
             if (score * 100 > 65 && redirect == "") {
               matchedCommand = commandsObj[key].command;
               redirect = commandsObj[key].action;
+              matchedScore = score;
             }
           }
           if (!_.isEmpty(matchedCommand)) {
@@ -138,7 +140,7 @@ io.sockets.on("connection", function (client) {
               appId: msg.appId,
               speech: speech.partial,
               action: redirect,
-              score: score,
+              score: matchedScore,
             });
           }
           connectedSockets[client.id] = null;
