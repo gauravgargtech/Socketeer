@@ -8,7 +8,8 @@ const redisClient = require("./adapters/redis");
 var Buffer = require("buffer/").Buffer;
 const FormData = require("form-data");
 const _ = require("lodash");
-var cors = require('cors');
+var cors = require("cors");
+const common = require("./common/functions");
 
 const PORT = 4000;
 
@@ -27,14 +28,8 @@ const server = app.listen(PORT, function () {
 });
 var io = require("socket.io").listen(server);
 //io.set('origins', '*:*');
-//io.origins('*:*');
+io.origins("*:*");
 //io.set('origins', 'https://addvoice.com.au');
-io.origins((origin, callback) => {
-  if (origin !== 'https://addvoice.com.au') {
-      return callback('origin not allowed', false);
-  }
-  callback(null, true);
-});
 
 io.sockets.on("connection", function (client) {
   writeConnections.write("Socket connected-" + client.id);
@@ -51,6 +46,10 @@ io.sockets.on("connection", function (client) {
           messages: `Say "${hotword}"`,
         });
       }
+    });
+
+    common.rabbitPublish("connections", {
+      appId: msg.appId,
     });
   }),
     client.on("message", async (msg) => {
@@ -94,6 +93,11 @@ io.sockets.on("connection", function (client) {
               });
               connectedSockets.push(client.id);
               fs.unlinkSync(fileName);
+              common.rabbitPublish("hotwords", {
+                appId: msg.appId,
+                score: score,
+              });
+
               return;
             } else {
               fs.unlinkSync(fileName);
@@ -120,7 +124,6 @@ io.sockets.on("connection", function (client) {
               redirect = commandsObj[key].action;
             }
           }
-
           if (!_.isEmpty(matchedCommand)) {
             client.emit("event", {
               commandType: "instruction",
@@ -130,10 +133,18 @@ io.sockets.on("connection", function (client) {
               matchedCommand: matchedCommand,
               scores: scoring,
             });
+
+            common.rabbitPublish("speeches", {
+              appId: msg.appId,
+              speech: speech.partial,
+              action: redirect,
+              score: score,
+            });
           }
           connectedSockets[client.id] = null;
+          fs.unlinkSync(fileName);
         }
-        fs.unlinkSync(fileName);
+        //fs.unlinkSync(fileName);
       });
     });
 });
