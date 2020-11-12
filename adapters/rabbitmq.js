@@ -30,7 +30,9 @@ function rabbitPublish(queue, message) {
     amqpConn.createChannel(on_open);
     function on_open(err, ch) {
       if (err != null) bail(err);
-      ch.assertQueue(queue);
+      ch.assertQueue(queue, {
+        durable: true,
+      });
       ch.sendToQueue(queue, Buffer.from(JSON.stringify(message)), {
         persistent: true,
       });
