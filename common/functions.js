@@ -28,20 +28,4 @@ module.exports = {
     return base64.decode(text);
   },
 
-  rabbitPublish: (queue, message) => {
-    try {
-      rabbit
-        .then(function (conn) {
-          return conn.createChannel();
-        })
-        .then(function (ch) {
-          return ch.assertQueue(queue).then(function (ok) {
-            return ch.sendToQueue(queue, Buffer.from(JSON.stringify(message)));
-          });
-        })
-        .catch(console.warn);
-    } catch (e) {
-      console.error("[AMQP] publish", e.message);
-    }
-  },
 };

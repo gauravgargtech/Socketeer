@@ -1,6 +1,46 @@
-var conn = require('amqplib').connect('amqp://localhost');
+var amqp = require("amqplib/callback_api");
 
-module.exports = conn;
+// if the connection is closed or fails to be established at all, we will reconnect
+var amqpConn = null;
+async function start() {
+  await amqp.connect("amqp://localhost", function (err, conn) {
+    if (err) {
+      console.error("[AMQP]", err.message);
+      return setTimeout(start, 1000);
+    }
+    conn.on("error", function (err) {
+      if (err.message !== "Connection closing") {
+        console.error("[AMQP] conn error", err.message);
+        return setTimeout(start, 1000);
+      }
+    });
+    conn.on("close", function () {
+      console.error("[AMQP] reconnecting");
+      return setTimeout(start, 1000);
+    });
+    console.log("[AMQP] connected");
+    amqpConn = conn;
+  });
+}
+start();
+//var conn = require('amqplib').connect('amqp://localhost');
+
+function rabbitPublish(queue, message) {
+  try {
+    amqpConn.createChannel(on_open);
+    function on_open(err, ch) {
+      if (err != null) bail(err);
+      ch.assertQueue(queue);
+      ch.sendToQueue(queue, Buffer.from(JSON.stringify(message)), {
+        persistent: true,
+      });
+    }
+  } catch (e) {
+    console.error("[AMQP] publish", e.message);
+  }
+}
+
+module.exports = rabbitPublish;
 
 /*
 amqpConn.createConfirmChannel(function (err, ch) {

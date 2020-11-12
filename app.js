@@ -9,7 +9,7 @@ var Buffer = require("buffer/").Buffer;
 const FormData = require("form-data");
 const _ = require("lodash");
 var cors = require("cors");
-const common = require("./common/functions");
+const rabbitPublish = require("./adapters/rabbitmq");
 
 const PORT = 4000;
 
@@ -48,7 +48,7 @@ io.sockets.on("connection", function (client) {
       }
     });
 
-    common.rabbitPublish("connections", {
+    rabbitPublish("connections", {
       appId: msg.appId,
     });
   }),
@@ -93,7 +93,7 @@ io.sockets.on("connection", function (client) {
               });
               connectedSockets.push(client.id);
               fs.unlinkSync(fileName);
-              common.rabbitPublish("hotwords", {
+              rabbitPublish("hotwords", {
                 appId: msg.appId,
                 score: score,
               });
@@ -136,7 +136,7 @@ io.sockets.on("connection", function (client) {
               scores: scoring,
             });
 
-            common.rabbitPublish("speeches", {
+            rabbitPublish("speeches", {
               appId: msg.appId,
               speech: speech.partial,
               action: redirect,
