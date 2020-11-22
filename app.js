@@ -120,7 +120,7 @@ io.sockets.on("connection", function (client) {
               score: score,
             });
 
-            if (score * 100 > 65 && redirect == "") {
+            if (score * 100 > 55 && score > matchedScore) {
               matchedCommand = commandsObj[key].command;
               redirect = commandsObj[key].action;
               matchedScore = score;
