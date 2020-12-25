@@ -1,6 +1,7 @@
 module.exports = {
     port: 3000,
     hostUrl : 'http://localhost:3000/',
+    sttHost: 'http://localhost:5001',
     mysql: {
       host: "localhost",
       username: "voice",
