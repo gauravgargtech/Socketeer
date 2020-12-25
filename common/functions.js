@@ -1,6 +1,7 @@
 var base64 = require("base-64");
 var utf8 = require("utf8");
 const rabbit = require("../adapters/rabbitmq");
+const redisClient = require("../adapters/redis");
 
 module.exports = {
   saveCommandsInRedis: async () => {
@@ -15,7 +16,6 @@ module.exports = {
         },
       },
     });
-    console.log(allCommands);
     await redisClient.set("commands_" + clientId, JSON.stringify(allCommands));
   },
 
@@ -28,4 +28,19 @@ module.exports = {
     return base64.decode(text);
   },
 
+  fetchCommands: (appId) => {
+    return new Promise((resolve, reject) => {
+      redisClient.get("commands_" + appId, (err, allCommands) => {
+        resolve(JSON.parse(allCommands));
+      });
+    });
+  },
+  fetchHotword: (appId) => {
+    return new Promise((resolve, reject) => {
+      redisClient.get("hotword_" + appId, (err, hotword) => {
+        console.log(hotword);
+        resolve(hotword);
+      });
+    });
+  },
 };

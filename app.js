@@ -11,32 +11,89 @@ const _ = require("lodash");
 var cors = require("cors");
 const rabbitPublish = require("./adapters/rabbitmq");
 
+const uws = require("uWebSockets.js");
+const BSON = require("bson");
+const hotwordFlow = require("./workflows/hotword");
+const processVoiceFlow = require("./workflows/processVoice");
+
 const PORT = 4000;
 
 app.use(express.static("public"));
 
 var connectedSockets = [];
-//app.use(cors());
 
-const writeConnections = fs.createWriteStream("soocketconnections.txt", {
-  flags: "a",
-});
+const apps = uws
+  .App({})
+  .ws("*", {
+    /* Options */
+    compression: uws.SHARED_COMPRESSOR,
+    maxPayloadLength: 16 * 1024 * 1024,
+    idleTimeout: 1000,
+    /* Handlers */
+    open: (ws) => {
+      console.log("A WebSocket connected!");
+      console.log(ws);
+    },
+    message: (ws, message, isBinary) => {
+      try {
+        console.log(message);
+        console.log(typeof message);
+        
+        return;
+        let incomingMessage = BSON.deserialize(message);
 
-const server = app.listen(PORT, function () {
-  console.log(`Listening on port ${PORT}`);
-  console.log(`http://localhost:${PORT}`);
-});
-var io = require("socket.io").listen(server);
-//io.set('origins', '*:*');
-io.origins("*:*");
-//io.set('origins', 'https://addvoice.com.au');
+        console.log(incomingMessage);
 
-io.sockets.on("connection", function (client) {
-  writeConnections.write("Socket connected-" + client.id);
-  client.on("disconnect", function () {
-    console.log("connection droped");
+
+        if (!_.has(incomingMessage, "appId")) {
+          return false;
+        }
+
+        switch (incomingMessage.dataType) {
+          case "getHotword":
+            console.log("calls");
+            hotwordFlow.getHotWord(incomingMessage, ws).then((hotword) => {});
+            break;
+          case "sendVoice":
+            console.log("voice got");
+            let v = new Buffer.from(incomingMessage.blobData, "binary");
+
+            console.log(v);
+            console.log(BSON.deserialize(incomingMessage.blobData));
+            processVoiceFlow.processVoice(incomingMessage);
+            console.log(incomingMessage);
+            break;
+        }
+      } catch (err) {
+        console.log(err);
+        return;
+      }
+    },
+    drain: (ws) => {
+      console.log("WebSocket backpressure: " + ws.getBufferedAmount());
+    },
+    close: (ws, code, message) => {
+      console.log("WebSocket closed");
+    },
+  })
+  .any("/*", (res, req) => {
+    res.end("Area restricted!");
+  })
+  .listen(PORT, (token) => {
+    if (token) {
+      console.log("Listening to port " + PORT);
+    } else {
+      console.log("Failed to listen to port " + PORT);
+    }
   });
 
+//app.use(cors());
+
+//io.set('origins', '*:*');
+//io.origins("*:*");
+//io.set('origins', 'https://addvoice.com.au');
+/*
+wss.on("connection", function connection(client) {
   client.on("getHotword", (msg) => {
     let appId = msg.appId;
     redisClient.get("hotword_" + appId, (err, hotword) => {
@@ -150,5 +207,5 @@ io.sockets.on("connection", function (client) {
       });
     });
 });
-
+*/
 console.log("Server running at http://127.0.0.1:4000/");
