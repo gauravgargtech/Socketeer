@@ -3,6 +3,7 @@ const common = require("../common/functions");
 var natural = require("natural");
 const rabbitPublish = require("../adapters/rabbitmq");
 const _ = require("lodash");
+const config = require("../config/keys");
 
 const processVoice = {
   processSpeech: async (msg, client) => {
@@ -36,13 +37,14 @@ const processVoice = {
         score: score,
       });
 
-      if (score * 100 > 55 && score > matchedScore) {
+      if (score * 100 > config.commandMatchScore && score > matchedScore) {
         matchedCommand = commandsObj[key].command;
         redirect = commandsObj[key].action;
         matchedScore = score;
       }
     }
     if (!_.isEmpty(matchedCommand)) {
+
       client.emit("event", {
         commandType: "instruction",
         action: "redirect",
