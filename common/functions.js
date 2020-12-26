@@ -50,9 +50,7 @@ module.exports = {
 
   fetchSpeechFromBlob: async (msg, fileName) => {
     const appID = msg.appId;
-
     fs.writeFileSync(fileName, Buffer.from(new Uint8Array(msg.blobData)));
-
     const formData = new FormData();
 
     formData.append("audio_file", fs.createReadStream(fileName));
